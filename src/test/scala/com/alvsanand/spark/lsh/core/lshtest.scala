@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import org.specs2.runner._
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import com.alvsanand.spark.lsh.util.EditDistance
 
 @RunWith(classOf[JUnitRunner])
 class LSHTest extends Specification {
@@ -38,13 +39,20 @@ class LSHTest extends Specification {
 
     println(lsh.model)
 
-    for (sen <- sentences.collect()) {
+    val sentencesMap = sentences.map { x => (x.index, x) }.collectAsMap
+    
+    for (sen <- sentencesMap.values) {
       val t = Math.pow(1/bands, (1/rows))
 
-      val candidates = lsh.similarsTo(sen, t)
+      val candidates = lsh.similarsTo(sen, t).filter(x => EditDistance.calculateDistance(sen.elems, sentencesMap.get(x._1).get.elems)<=1)
 
       if (candidates.size > 0) {
-        println("Sentence[%d] has similar the following similar cadidates: %s".format(sen.index, candidates.mkString(" && ")))
+        println("###################")
+        println("[%d]%s".format(sen.index, sentencesMap.get(sen.index).get.elems.mkString(" ")))
+        println("is similar to:")
+        println("###################")
+        println(candidates.map(x => "[%d]%s".format(x._1, sentencesMap.get(x._1).get.elems.mkString(" "))).mkString("\n"))
+        println("###################")
       }
     }
 

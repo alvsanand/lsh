@@ -61,7 +61,7 @@ class LSH(private var rows: Int, private var bands: Int, private var shingleLeng
         val minHashFuncs = bdcMinHashFunctions.value
         val bandHashFuncs = bdcBandHashFunctions.value
 
-        val shingles = elems.toList.sliding(shingleLength).map(_.mkString).toSet
+        val shingles = elems.toList.sliding(shingleLength).map(_.mkString).toSet.toList.sorted
 
         val shinglesIndexInUniversalSet = shingles.map(p => universalSet(p))
 
