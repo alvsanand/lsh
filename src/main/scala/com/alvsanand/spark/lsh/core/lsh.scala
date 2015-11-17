@@ -83,12 +83,12 @@ class LSH(private var rows: Int, private var bands: Int, private var shingleLeng
     this
   }
 
-  def compute(array: IndexedArray, minJaccardDistance: Double, maxJaccardDistance: Double) = {
+  def similarsTo(array: IndexedArray, threshold: Double) = {
     val id = array.index
     val elems = array.elems
 
     val shingles = elems.toList.sliding(shingleLength).map(_.mkString).toSet
-    
+
 //    println("Sentence[%s] has these shingles: %s".format(array.elems.mkString, shingles.toList.mkString(" && ")))
 
     val shinglesIndexInUniversalSet = shingles.map(p => dictionary(p))
@@ -104,12 +104,11 @@ class LSH(private var rows: Int, private var bands: Int, private var shingleLeng
           (bandId, bucketId)
       }
 
-    val minCommonBuckets = rows * (1 - maxJaccardDistance)
-    val maxCommonBuckets = rows * (1 - minJaccardDistance)
+    val minCommonBuckets = rows * (1 - threshold)
 
     bands.filter(x => model.contains(x))
       .flatMap(x => model(x).map((_, 1))).toList
       .groupBy(_._1).mapValues(x => x.size)
-      .filter(x => id != x._1 && x._2 >= minCommonBuckets && x._2 <= maxCommonBuckets)
+      .filter(x => id != x._1 && x._2 >= minCommonBuckets).toSet
   }
 }
